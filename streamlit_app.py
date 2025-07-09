@@ -3,7 +3,7 @@ import requests
 
 # Streamlit setup
 st.set_page_config(page_title="Gemini Stateless Chatbot", layout="centered")
-st.title("🤖 Gemini 2.0 Flash (Stateless)")
+st.title("🤖 Musab ")
 
 # API config
 API_KEY = st.secrets["API_key"]
