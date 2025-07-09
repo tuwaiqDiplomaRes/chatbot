@@ -1,59 +1,47 @@
 import streamlit as st
 import requests
-import json
 
-# Streamlit page settings
-st.set_page_config(page_title="Gemini Chatbot", layout="centered")
-st.title("🤖 Gemini 2.0 Flash Chatbot")
+# Streamlit setup
+st.set_page_config(page_title="Gemini Stateless Chatbot", layout="centered")
+st.title("🤖 Gemini 2.0 Flash (Stateless)")
 
-# Load API key from Streamlit secrets
+# API config
 API_KEY = st.secrets["API_key"]
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-
-# Initialize session state for chat history
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # User input
-user_input = st.text_input("You:", placeholder="Ask me anything about AI...", key="user_input")
+prompt = st.text_input("Ask Gemini:", placeholder="e.g., Explain how AI works...")
 
-# Function to send request to Gemini
-def generate_response(prompt):
+# Function to send a prompt to Gemini
+def get_response(prompt):
     headers = {
         "Content-Type": "application/json",
         "X-goog-api-key": API_KEY
     }
 
-    data = {
+    body = {
         "contents": [
             {
                 "parts": [
-                    {
-                        "text": prompt
-                    }
+                    {"text": prompt}
                 ]
             }
         ]
     }
 
-    response = requests.post(API_URL, headers=headers, json=data)
+    response = requests.post(API_URL, headers=headers, json=body)
 
     if response.status_code == 200:
-        content = response.json()
         try:
-            return content["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError):
+            return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception:
             return "⚠️ Unexpected response structure."
     else:
         return f"❌ Error {response.status_code}: {response.text}"
 
-# If user enters a message
-if user_input:
-    st.session_state.chat_history.append(("🧑", user_input))
+# If user submitted a prompt
+if prompt:
     with st.spinner("Gemini is thinking..."):
-        reply = generate_response(user_input)
-    st.session_state.chat_history.append(("🤖", reply))
-
-# Display chat history
-for speaker, message in st.session_state.chat_history:
-    st.markdown(f"**{speaker}**: {message}")
+        answer = get_response(prompt)
+    st.markdown("**Gemini says:**")
+    st.markdown(answer)
